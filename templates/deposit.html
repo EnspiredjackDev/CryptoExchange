@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deposit</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <h1>Deposit</h1>
+        <nav>
+            <a href="/dashboard">Dashboard</a> | <a href="/logout">Logout</a>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul class="flashes">
+              {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+
+        <section>
+            <h2>Create a New Deposit Address</h2>
+            <form method="POST">
+                <label for="node_id">Select Currency:</label>
+                <select name="node_id" id="node_id" required style="margin-bottom: 5px; margin-top: 5px;">
+                    {% for node in nodes %}
+                    <option value="{{ node.id }}">{{ node.name }} ({{ node.symbol }})</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Generate Address</button>
+            </form>
+        </section>
+
+        <section>
+            <h2>Your Deposit Addresses</h2>
+
+            <!-- Filter Form -->
+            <form method="GET" action="{{ url_for('deposit') }}" style="margin-bottom: 20px;">
+                <label for="currency">Filter by Currency:</label>
+                <select name="currency" id="currency" onchange="this.form.submit()">
+                    <option value="">All</option>
+                    {% for node in nodes %}
+                    <option value="{{ node.symbol }}" {% if filter_currency == node.symbol %}selected{% endif %}>
+                        {{ node.name }} ({{ node.symbol }})
+                    </option>
+                    {% endfor %}
+                </select>
+                <noscript>
+                    <button type="submit">Apply</button>
+                </noscript>
+            </form>
+
+            <!-- Address Table -->
+            <table>
+                <thead>
+                    <tr>
+                        <th>Currency</th>
+                        <th>Address</th>
+                        <th>Date Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for address in deposit_addresses %}
+                    <tr>
+                        <td>{{ address.node.name }} ({{ address.node.symbol }})</td>
+                        <td>{{ address.address }}</td>
+                        <td>{{ address.created_at }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </main>
+</body>
+</html>

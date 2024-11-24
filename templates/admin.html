@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Node Management</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <h1>Admin - Node Management</h1>
+    </header>
+
+    <main>
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul class="flashes">
+              {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+
+        <!-- Add Node Form -->
+        <section>
+            <h2>Add a New Node</h2>
+            <form method="POST">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required>
+                
+                <label for="symbol">Symbol:</label>
+                <input type="text" id="symbol" name="symbol" required>
+                
+                <label for="host">Host:</label>
+                <input type="text" id="host" name="host" required>
+                
+                <label for="port">Port:</label>
+                <input type="number" id="port" name="port" required>
+                
+                <label for="username">RPC Username:</label>
+                <input type="text" id="username" name="username" required>
+                
+                <label for="password">RPC Password:</label>
+                <input type="password" id="password" name="password" required>
+                
+                <button type="submit">Add Node</button>
+            </form>
+        </section>
+
+        <!-- List of Existing Nodes -->
+        <section>
+            <h2>Existing Nodes</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Symbol</th>
+                        <th>Host</th>
+                        <th>Port</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for node in nodes %}
+                    <tr>
+                        <td>{{ node.id }}</td>
+                        <td>{{ node.name }}</td>
+                        <td>{{ node.symbol }}</td>
+                        <td>{{ node.host }}</td>
+                        <td>{{ node.port }}</td>
+                        <td>
+                            <form action="{{ url_for('delete_node', node_id=node.id) }}" method="POST" style="display: inline;">
+                                <button type="submit" onclick="return confirm('Are you sure?')">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </main>
+</body>
+</html>

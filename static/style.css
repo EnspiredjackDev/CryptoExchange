@@ -1,67 +1,133 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #f9f9f9;
-    color: #333;
+    background-color: #121212; /* Dark background */
+    color: #e0e0e0; /* Light text */
     margin: 0;
     padding: 20px;
-  }
-  
-  header {
+}
+
+header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-  }
-  
-  nav a {
+}
+
+nav a {
     margin: 0 10px;
     text-decoration: none;
-    color: #007bff;
-  }
-  
-  form {
+    color: #61dafb; /* Highlighted link colour */
+}
+
+form {
     display: flex;
     flex-direction: column;
     width: 300px;
-  }
-  
-  form label {
+}
+
+form label {
     margin-top: 10px;
-  }
-  
-  form input {
+    color: #e0e0e0; /* Light text for labels */
+}
+
+form input {
     margin-bottom: 10px;
-  }
-  
-  body.dark-mode {
-    background-color: #333;
-    color: #f9f9f9;
-  }
-  
-  body.dark-mode a {
-    color: #61dafb;
-  }
-  
-  .flashes {
+    background-color: #1e1e1e; /* Input background */
+    color: #e0e0e0; /* Input text colour */
+    border: 1px solid #333; /* Dark border */
+    padding: 8px;
+    border-radius: 4px;
+}
+
+form input::placeholder {
+    color: #888; /* Placeholder text */
+}
+
+.flashes {
     list-style: none;
     padding: 0;
     margin: 10px 0;
-  }
-  
-  .flashes li {
+}
+
+.flashes li {
     padding: 10px;
     margin-bottom: 10px;
     border-radius: 5px;
-  }
-  
-  .flashes li.success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-  }
-  
-  .flashes li.error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-  }
-  
+}
+
+.flashes li.success {
+    background-color: #2e7d32; /* Dark green */
+    color: #a5d6a7; /* Light green text */
+    border: 1px solid #388e3c;
+}
+
+.flashes li.error {
+    background-color: #c62828; /* Dark red */
+    color: #ef9a9a; /* Light red text */
+    border: 1px solid #d32f2f;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: #1e1e1e; /* Dark table background */
+}
+
+table th,
+table td {
+    border: 1px solid #333; /* Dark borders */
+    padding: 8px;
+    text-align: left;
+    color: #e0e0e0; /* Light text */
+}
+
+table th {
+    background-color: #333; /* Darker background for headers */
+}
+
+table tr:nth-child(even) {
+    background-color: #242424; /* Slightly lighter row for alternation */
+}
+
+/* Adjust textboxes */
+form input,
+form select {
+    background-color: #1e1e1e; /* Dark background for inputs and dropdowns */
+    color: #e0e0e0; /* Light text for readability */
+    border: 1px solid #333; /* Subtle border */
+    padding: 8px;
+    border-radius: 4px;
+}
+
+form input::placeholder {
+    color: #888; /* Placeholder text colour */
+}
+
+/* Adjust buttons */
+form button {
+    background-color: #333; /* Darker button background */
+    color: #e0e0e0; /* Light text */
+    border: 1px solid #555; /* Slightly lighter border */
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+form button:hover {
+    background-color: #444; /* Slightly lighter background on hover */
+    border-color: #666; /* Adjust border colour on hover */
+}
+
+/* Adjust dropdown options */
+form select {
+    appearance: none; /* Remove default OS styling */
+    padding: 8px;
+    background-color: #1e1e1e; /* Match input fields */
+    color: #e0e0e0; /* Light text */
+    border: 1px solid #333; /* Consistent border */
+}
+
+form select option {
+    background-color: #1e1e1e; /* Dark dropdown background */
+    color: #e0e0e0; /* Light text */
+}
