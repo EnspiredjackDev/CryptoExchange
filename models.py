@@ -19,7 +19,8 @@ class Node(db.Model):
     host = db.Column(db.String(100), nullable=False)
     port = db.Column(db.Integer, nullable=False)
     username = db.Column(db.String(50), nullable=False)
-    password = db.Column(db.String(100), nullable=False)  # Secure storage recommended
+    password = db.Column(db.String(100), nullable=False)  
+    min_confirmations = db.Column(db.Integer, default=1, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
@@ -30,6 +31,7 @@ class DepositAddress(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     node_id = db.Column(db.Integer, db.ForeignKey('nodes.id'), nullable=False)
     address = db.Column(db.String(100), nullable=False)
+    used = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship('User', backref='deposit_addresses', lazy=True)
@@ -37,3 +39,17 @@ class DepositAddress(db.Model):
 
     def __repr__(self):
         return f"<DepositAddress {self.address}>"
+    
+class UserBalance(db.Model):
+    __tablename__ = 'user_balances'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    node_id = db.Column(db.Integer, db.ForeignKey('nodes.id'), nullable=False)
+    balance = db.Column(db.Float, default=0.0, nullable=False)
+
+    user = db.relationship('User', backref='balances', lazy=True)
+    node = db.relationship('Node', backref='user_balances', lazy=True)
+
+    def __repr__(self):
+        return f"<UserBalance User: {self.user_id}, Node: {self.node_id}, Balance: {self.balance}>"

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Balances</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <h1>Your Balances</h1>
+        <nav>
+            <a href="/dashboard">Dashboard</a> | <a href="/deposit">Deposit</a> | <a href="/logout">Logout</a>
+        </nav>
+    </header>
+
+    <main>
+        <table>
+            <thead>
+                <tr>
+                    <th>Currency</th>
+                    <th>Symbol</th>
+                    <th>Balance</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for balance in balances_paginated.items %}
+                <tr>
+                    <td>{{ balance.node.name }}</td>
+                    <td>{{ balance.node.symbol }}</td>
+                    <td>{{ "%.8f" | format(balance.balance) }}</td> <!-- Rounds to 8 decimal places -->
+                    <td>
+                        <a href="{{ url_for('deposit', currency=balance.node.symbol) }}">Deposit</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Pagination Controls -->
+        <div class="pagination">
+            {% if balances_paginated.has_prev %}
+            <a href="{{ url_for('balances', page=balances_paginated.prev_num) }}">&laquo; Previous</a>
+            {% endif %}
+
+            Page {{ balances_paginated.page }} of {{ balances_paginated.pages }}
+
+            {% if balances_paginated.has_next %}
+            <a href="{{ url_for('balances', page=balances_paginated.next_num) }}">Next &raquo;</a>
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>

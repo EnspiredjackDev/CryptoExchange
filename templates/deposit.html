@@ -1,29 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deposit</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
+
 <body>
     <header>
         <h1>Deposit</h1>
         <nav>
-            <a href="/dashboard">Dashboard</a> | <a href="/logout">Logout</a>
+            <a href="/deposit">Deposit</a> | <a href="/balances">Balances</a> | <a href="/logout">Logout</a>
         </nav>
     </header>
 
     <main>
         <!-- Flash messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            <ul class="flashes">
-              {% for category, message in messages %}
-                <li class="{{ category }}">{{ message }}</li>
-              {% endfor %}
-            </ul>
-          {% endif %}
+        {% if messages %}
+        <ul class="flashes">
+            {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
         {% endwith %}
 
         <section>
@@ -41,6 +43,8 @@
 
         <section>
             <h2>Your Deposit Addresses</h2>
+            <p>Note: Please do not reuse an address once it has been used for a deposit. Generate a new address if
+                needed.</p>
 
             <!-- Filter Form -->
             <form method="GET" action="{{ url_for('deposit') }}" style="margin-bottom: 20px;">
@@ -48,7 +52,7 @@
                 <select name="currency" id="currency" onchange="this.form.submit()">
                     <option value="">All</option>
                     {% for node in nodes %}
-                    <option value="{{ node.symbol }}" {% if filter_currency == node.symbol %}selected{% endif %}>
+                    <option value="{{ node.symbol }}" {% if filter_currency==node.symbol %}selected{% endif %}>
                         {{ node.name }} ({{ node.symbol }})
                     </option>
                     {% endfor %}
@@ -58,12 +62,12 @@
                 </noscript>
             </form>
 
-            <!-- Address Table -->
             <table>
                 <thead>
                     <tr>
                         <th>Currency</th>
                         <th>Address</th>
+                        <th>Status</th>
                         <th>Date Created</th>
                     </tr>
                 </thead>
@@ -72,6 +76,7 @@
                     <tr>
                         <td>{{ address.node.name }} ({{ address.node.symbol }})</td>
                         <td>{{ address.address }}</td>
+                        <td>{{ "Used" if address.used else "Unused" }}</td>
                         <td>{{ address.created_at }}</td>
                     </tr>
                     {% endfor %}
@@ -80,4 +85,5 @@
         </section>
     </main>
 </body>
+
 </html>

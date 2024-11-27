@@ -131,3 +131,30 @@ form select option {
     background-color: #1e1e1e; /* Dark dropdown background */
     color: #e0e0e0; /* Light text */
 }
+
+.pagination {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.pagination a {
+    padding: 5px 10px;
+    text-decoration: none;
+    border: 1px solid #007bff;
+    border-radius: 5px;
+    color: #007bff;
+    background-color: #f9f9f9;
+}
+
+.pagination a:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+.pagination span {
+    margin: 0 5px;
+    font-weight: bold;
+}
