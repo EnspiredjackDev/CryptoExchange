@@ -3,7 +3,7 @@
 # CONFIGURE THESE:
 DB_NAME="myexchange"
 DB_USER="exchange"
-DB_PASSWORD=""
+DB_PASSWORD="exchangepassword"
 SCHEMA_NAME="exchange"
 
 echo "Creating PostgreSQL user and database..."
@@ -62,3 +62,7 @@ ALTER SCHEMA ${SCHEMA_NAME} OWNER TO ${DB_USER};
 EOF
 
 echo "✅ PostgreSQL setup complete for user '$DB_USER', DB '$DB_NAME', schema '$SCHEMA_NAME'"
+
+echo "Creating tables using SQLAlchemy..."
+python3 createTables.py
+echo "✅ Tables created."
