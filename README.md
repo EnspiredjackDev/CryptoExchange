@@ -1,6 +1,6 @@
 # Crypto Exchange – Developer Documentation
 
-*Last updated: 27 July 2025*
+*Last updated: 27 July 2025*  
 *Documentation created with the help of ChatGPT, otherwise it would look rubbish*
 
 ---
