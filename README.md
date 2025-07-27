@@ -1,18 +1,19 @@
 # Crypto Exchange – Developer Documentation
 
-*Last updated: 14 June 2025*
+*Last updated: 27 July 2025*
+*Documentation created with the help of ChatGPT, otherwise it would look rubbish*
 
 ---
 
 ## 1  Introduction
 
-Welcome to the developer guide for **Our Crypto Exchange** (henceforth “the Exchange”). This document explains how to integrate with the HTTP REST API, describes the underlying data models, and outlines operational and security considerations for external or in‑house clients.
+### This document explains how to integrate with the HTTP REST API, describes the underlying data models, and outlines operational and security considerations for external or in‑house clients.
 ---
 
-## 2  Base URL & Versioning
+## 2  Base URL
 
 ```
-https://api.example.com/v1
+https://api.example.com/
 ```
 
 The current API is version **v1**. New, backwards‑compatible fields may be added without prior notice; breaking changes will trigger a new major version.
