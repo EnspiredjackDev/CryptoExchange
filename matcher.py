@@ -62,8 +62,6 @@ def match_orders(db, market_id):
             if unused_locked > 0:
                 buyer_quote.available += unused_locked
 
-            buyer_quote.available -= quote_fee  # subtract the DOGE fee
-
             buyer_quote.total = buyer_quote.available + buyer_quote.locked
 
             # --- Seller logic ---

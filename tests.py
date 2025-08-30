@@ -1,34 +1,65 @@
 from decimal import Decimal
 import threading
 import requests
+import hashlib
 from db import SessionLocal
 from models import Balance, User
 from utils import hash_api_key
-from sqlalchemy.orm.exc import NoResultFound
 from resetTables import wipe_tables
 
 BASE_URL = "http://localhost:5000"
 FEE_RATE = Decimal("0.001")  # 0.1%
 
+# Test admin key - for testing purposes only
+TEST_ADMIN_KEY = "admin-key"
+TEST_ADMIN_KEY_HASH = hashlib.sha256(TEST_ADMIN_KEY.encode()).hexdigest()
 
 def auth_headers(api_key):
     return {"Authorization": f"Bearer {api_key}"}
 
+def admin_headers():
+    return {"X-Admin-Key": TEST_ADMIN_KEY}
+
+import time
+
+def make_request_with_retry(func, max_retries=3, delay=1):
+    """Make a request with retry logic for rate limiting."""
+    for attempt in range(max_retries):
+        try:
+            return func()
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 429:  # Rate limited
+                if attempt < max_retries - 1:
+                    print(f"⏳ Rate limited, waiting {delay} seconds... (attempt {attempt + 1})")
+                    time.sleep(delay)
+                    delay *= 2  # Exponential backoff
+                    continue
+            raise
 
 def create_user():
-    r = requests.post(f"{BASE_URL}/create_account")
-    r.raise_for_status()
-    return r.json()["api_key"]
-
+    def _create():
+        r = requests.post(f"{BASE_URL}/create_account")
+        r.raise_for_status()
+        return r.json()["api_key"]
+    
+    return make_request_with_retry(_create)
 
 def create_market(base="DGB", quote="DOGE", fee_rate=Decimal("0.001")):
-    r = requests.post(f"{BASE_URL}/admin/create_market", json={
-        "base_coin": base,
-        "quote_coin": quote,
-        "fee_rate": str(fee_rate)
-    })
-    r.raise_for_status()
-    return r.json()["market_id"]
+    def _create():
+        r = requests.post(f"{BASE_URL}/admin/create_market", 
+                         headers=admin_headers(),
+                         json={
+                             "base_coin": base,
+                             "quote_coin": quote,
+                             "fee_rate": str(fee_rate)
+                         })
+        if r.status_code != 201:
+            print(f"❌ Failed creating market: {r.status_code}")
+            print(f"Response: {r.text}")
+            r.raise_for_status()
+        return r.json()["market_id"]
+    
+    return make_request_with_retry(_create)
 
 
 def set_balance(api_key, coin, amount):
@@ -59,32 +90,57 @@ def set_balance(api_key, coin, amount):
 
 
 def get_balance(api_key, coin):
-    r = requests.get(f"{BASE_URL}/balance", headers=auth_headers(api_key), params={"coin": coin})
-    r.raise_for_status()
-    return r.json().get(coin, {})
-
+    def _get():
+        r = requests.get(f"{BASE_URL}/balance", headers=auth_headers(api_key), params={"coin": coin})
+        r.raise_for_status()
+        return r.json().get(coin, {})
+    
+    return make_request_with_retry(_get)
 
 def place_order(api_key, market_id, side, price, amount):
-    r = requests.post(f"{BASE_URL}/order", headers=auth_headers(api_key), json={
-        "market_id": market_id,
-        "side": side,
-        "price": str(price),
-        "amount": str(amount)
-    })
-    if r.status_code != 201:
-        print(f"❌ Failed placing {side} order: {r.status_code}")
-        print(r.text)
-        r.raise_for_status()
-    return r.json()
-
+    def _place():
+        r = requests.post(f"{BASE_URL}/order", headers=auth_headers(api_key), json={
+            "market_id": market_id,
+            "side": side,
+            "price": str(price),
+            "amount": str(amount)
+        })
+        if r.status_code != 201:
+            print(f"❌ Failed placing {side} order: {r.status_code}")
+            print(r.text)
+            r.raise_for_status()
+        return r.json()
+    
+    return make_request_with_retry(_place)
 
 def get_fees():
-    r = requests.get(f"{BASE_URL}/admin/fees")
-    r.raise_for_status()
-    return r.json()
+    def _get():
+        r = requests.get(f"{BASE_URL}/admin/fees", headers=admin_headers())
+        if r.status_code != 200:
+            print(f"❌ Failed getting fees: {r.status_code}")
+            print(f"Response: {r.text}")
+            r.raise_for_status()
+        return r.json()
+    
+    return make_request_with_retry(_get)
+
+def setup_test_environment():
+    """Set up the test environment with proper admin authentication."""
+    # Set the test admin key hash in the security config
+    try:
+        from security import SecurityConfig
+        SecurityConfig.ADMIN_API_KEY_HASH = TEST_ADMIN_KEY_HASH
+        print(f"✅ Test admin key configured")
+    except ImportError:
+        print("⚠️ Security module not available, admin endpoints may not work")
 
 def run_test():
     print("🚀 Starting DGB/DOGE market test...")
+    
+    # Setup test environment
+    setup_test_environment()
+
+    wipe_tables()
 
     # Create users
     buyer_key = create_user()
@@ -221,17 +277,17 @@ def run_test():
     buyer_bal_dgb = get_balance(buyer_key, "DGB")
     buyer_bal_doge = get_balance(buyer_key, "DOGE")
 
-    # Expected received DGB after fee
+    # Expected received DGB after fee (fee taken from received DGB)
     expected_received_dgb = Decimal("5") * (Decimal("1") - FEE_RATE)
     assert Decimal(buyer_bal_dgb["available"]) == expected_received_dgb.quantize(Decimal("0.00000001"))
 
-    # DOGE balance breakdown
+    # DOGE balance breakdown (new fee model)
     trade_price = Decimal("0.95")
     trade_amount = Decimal("5")
-    spent = trade_price * trade_amount  # 4.75
-    fee = spent * FEE_RATE              # 0.00475
-    total_deducted = spent + fee        # 4.75475
-    expected_available_doge = Decimal("1000") - total_deducted
+    spent = trade_price * trade_amount  # 4.75 (exact amount paid, no additional fee)
+    
+    # Under new fee model: no fee charged on quote coin, fee is taken from base coin received
+    expected_available_doge = Decimal("1000") - spent  # Just subtract what was actually paid
     expected_locked_doge = Decimal("5.00") - spent  # Unused quote locked (0.25)
     expected_total_doge = expected_available_doge + expected_locked_doge
 

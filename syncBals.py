@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-MIN_CONFIRMATIONS = 2
+MIN_CONFIRMATIONS = 6
 
 def sync_balances():
     db = SessionLocal()
@@ -90,7 +90,7 @@ def sync_balances():
 
             else:
                 # Bitcoin-like sync logic
-                txs = node._rpc_request("listtransactions", ["*", 1000, 0, True, since_marker])
+                txs = node._rpc_request("listtransactions", ["*", 1000, 0, True])
                 seen_blockhash = None
 
                 for addr in addrs:
