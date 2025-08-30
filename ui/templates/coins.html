@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Supported Cryptocurrencies - CryptoExchange{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h3>Supported Cryptocurrencies</h3>
+    <p>The following cryptocurrencies are supported on our exchange platform:</p>
+</div>
+
+{% if supported_coins %}
+    <div class="card mt-20">
+        <h3>Available Coins</h3>
+        <div class="grid grid-2">
+            {% for symbol, coin_info in supported_coins.items() %}
+                <div class="card" style="margin: 10px 0; {% if coin_info.status != 'online' %}border-color: #ff4545;{% endif %}">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h4>{{ coin_info.name }} ({{ symbol }})</h4>
+                        <span class="status-indicator {{ 'status-online' if coin_info.status == 'online' else 'status-offline' if coin_info.status == 'connection_error' else 'status-warning' }}"></span>
+                    </div>
+                    
+                    <div class="grid grid-2" style="font-size: 12px;">
+                        <div>
+                            <strong>Network:</strong> {{ coin_info.network_info.network }}<br>
+                            <strong>Confirmations:</strong> {{ coin_info.network_info.confirmations }}<br>
+                            <strong>Block Time:</strong> {{ coin_info.network_info.block_time }}
+                        </div>
+                        <div>
+                            <strong>Typical Fee:</strong> {{ coin_info.network_info.typical_fee }}<br>
+                            <strong>Address Format:</strong> {{ coin_info.network_info.address_format }}<br>
+                            <strong>Node Status:</strong> {{ coin_info.status.replace('_', ' ').title() }}
+                        </div>
+                    </div>
+                    
+                    {% if coin_info.status != 'online' %}
+                        <div class="info-box error mt-10">
+                            <strong>⚠️ Notice:</strong> This cryptocurrency may have limited functionality due to node connectivity issues.
+                            {% if coin_info.error %}
+                                <br><small>Error: {{ coin_info.error }}</small>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Trading Pairs -->
+    {% if markets %}
+        <div class="card mt-20">
+            <h3>Available Trading Pairs</h3>
+            <div class="grid grid-3">
+                {% for market in markets %}
+                    <a href="{{ url_for('market_view', market_id=market.market_id) }}" class="market-item">
+                        <div class="market-pair">{{ market.base_coin }}/{{ market.quote_coin }}</div>
+                        <div style="font-size: 12px; margin-top: 5px; color: #b0b0b0;">
+                            {% if market.last_price %}
+                                Last: {{ format_number(market.last_price, 8) }}
+                            {% endif %}
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Network Statistics -->
+    <div class="card mt-20">
+        <h3>Network Statistics</h3>
+        <div class="grid grid-3">
+            <div>
+                <h4>📊 Total Coins</h4>
+                <div class="value" style="font-size: 24px; color: #00ff88;">{{ supported_coins|length }}</div>
+            </div>
+            <div>
+                <h4>🟢 Online Nodes</h4>
+                <div class="value" style="font-size: 24px; color: #00ff88;">
+                    {{ supported_coins.values() | selectattr('status', 'equalto', 'online') | list | length }}
+                </div>
+            </div>
+            <div>
+                <h4>💱 Trading Pairs</h4>
+                <div class="value" style="font-size: 24px; color: #00ff88;">{{ markets|length if markets else 0 }}</div>
+            </div>
+        </div>
+    </div>
+
+{% else %}
+    <div class="card mt-20">
+        <h3 style="color: #ff4545;">⚠️ No Supported Coins Found</h3>
+        <p>Unable to retrieve supported cryptocurrency information. This could indicate:</p>
+        <ul style="margin-left: 20px;">
+            <li>API connectivity issues</li>
+            <li>No cryptocurrencies configured</li>
+            <li>Server configuration problems</li>
+        </ul>
+        <p>Please contact the administrator or try again later.</p>
+    </div>
+{% endif %}
+
+<!-- Usage Guide -->
+<div class="card mt-20">
+    <h3>How to Use Supported Coins</h3>
+    <div class="grid grid-2">
+        <div>
+            <h4>🏦 Deposits</h4>
+            <ol style="margin-left: 20px;">
+                <li>Create an account and login</li>
+                <li>Generate a deposit address for your chosen coin</li>
+                <li>Send cryptocurrency to the generated address</li>
+                <li>Wait for network confirmations</li>
+                <li>Funds will appear in your balance</li>
+            </ol>
+        </div>
+        <div>
+            <h4>💹 Trading</h4>
+            <ol style="margin-left: 20px;">
+                <li>Ensure you have balance in your account</li>
+                <li>Choose a trading pair from the markets</li>
+                <li>Place buy or sell orders</li>
+                <li>Monitor order execution</li>
+                <li>Withdraw profits when ready</li>
+            </ol>
+        </div>
+    </div>
+</div>
+
+<!-- Important Notes -->
+<div class="card mt-20">
+    <h3>⚠️ Important Security Notes</h3>
+    <div class="grid grid-2">
+        <div>
+            <h4>🔒 Deposit Safety</h4>
+            <ul style="margin-left: 20px;">
+                <li>Always verify deposit addresses</li>
+                <li>Send small test amounts first</li>
+                <li>Ensure correct network selection</li>
+                <li>Double-check address accuracy</li>
+            </ul>
+        </div>
+        <div>
+            <h4>💸 Withdrawal Safety</h4>
+            <ul style="margin-left: 20px;">
+                <li>Verify destination addresses thoroughly</li>
+                <li>Consider network fees in calculations</li>
+                <li>Be aware of confirmation times</li>
+                <li>Transactions cannot be reversed</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

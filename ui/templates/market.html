@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}{{ current_market.base_coin }}/{{ current_market.quote_coin }} - CryptoExchange{% endblock %}
+
+{% block content %}
+<!-- Market Header -->
+<div class="card mb-20">
+    <div class="grid grid-2">
+        <div>
+            <h3>{{ current_market.base_coin }}/{{ current_market.quote_coin }}</h3>
+            <div class="market-stats">
+                <div class="market-stat">
+                    <div class="label">Last Price</div>
+                    <div class="value">{{ format_number(current_market.last_price, 8) if current_market.last_price else 'N/A' }}</div>
+                </div>
+                <div class="market-stat">
+                    <div class="label">24h Volume</div>
+                    <div class="value">{{ format_number(current_market.volume_24h, 4) }}</div>
+                </div>
+                <div class="market-stat">
+                    <div class="label">24h Change</div>
+                    <div class="value {% if current_market.change_24h %}{{ 'positive' if current_market.change_24h > 0 else 'negative' }}{% endif %}">
+                        {% if current_market.change_24h is not none %}
+                            {{ '+' if current_market.change_24h > 0 else '' }}{{ current_market.change_24h }}%
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="market-stat">
+                    <div class="label">Best Bid</div>
+                    <div class="value bid-price">{{ format_number(current_market.best_bid, 8) if current_market.best_bid else 'N/A' }}</div>
+                </div>
+                <div class="market-stat">
+                    <div class="label">Best Ask</div>
+                    <div class="value ask-price">{{ format_number(current_market.best_ask, 8) if current_market.best_ask else 'N/A' }}</div>
+                </div>
+                <div class="market-stat">
+                    <div class="label">24h Trades</div>
+                    <div class="value">{{ current_market.trade_count_24h or 0 }}</div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <h4>Other Markets</h4>
+            <div style="max-height: 200px; overflow-y: auto;">
+                {% for market in markets %}
+                    <a href="{{ url_for('market_view', market_id=market.market_id) }}" 
+                       class="nav-links" 
+                       style="display: block; padding: 5px 0; {% if market.market_id == current_market.market_id %}color: #00ff88;{% endif %}">
+                        {{ market.base_coin }}/{{ market.quote_coin }}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-2">
+    <!-- Order Book -->
+    <div class="card">
+        <h3>Order Book</h3>
+        {% if orderbook.asks or orderbook.bids %}
+            <div class="orderbook">
+                <!-- Asks (Sell Orders) -->
+                {% if orderbook.asks %}
+                    <h4>Asks (Sell Orders)</h4>
+                    <table class="asks">
+                        <thead>
+                            <tr>
+                                <th>Price ({{ current_market.quote_coin }})</th>
+                                <th>Amount ({{ current_market.base_coin }})</th>
+                                <th>Total ({{ current_market.quote_coin }})</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ask in orderbook.asks %}
+                                <tr>
+                                    <td class="number ask-price">{{ format_number(ask.price, 8) }}</td>
+                                    <td class="number">{{ format_number(ask.amount, 8) }}</td>
+                                    <td class="number">{{ calculate_total(ask.price, ask.amount, 8) }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+
+                <!-- Spread -->
+                {% if orderbook.asks and orderbook.bids %}
+                    <div style="text-align: center; padding: 10px; background-color: #333; margin: 10px 0;">
+                        Spread: {{ format_number(orderbook.asks[0].price - orderbook.bids[0].price, 8) }}
+                    </div>
+                {% endif %}
+
+                <!-- Bids (Buy Orders) -->
+                {% if orderbook.bids %}
+                    <h4>Bids (Buy Orders)</h4>
+                    <table class="bids">
+                        <thead>
+                            <tr>
+                                <th>Price ({{ current_market.quote_coin }})</th>
+                                <th>Amount ({{ current_market.base_coin }})</th>
+                                <th>Total ({{ current_market.quote_coin }})</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bid in orderbook.bids %}
+                                <tr>
+                                    <td class="number bid-price">{{ format_number(bid.price, 8) }}</td>
+                                    <td class="number">{{ format_number(bid.amount, 8) }}</td>
+                                    <td class="number">{{ calculate_total(bid.price, bid.amount, 8) }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+            </div>
+        {% else %}
+            <p>No order book data available.</p>
+        {% endif %}
+    </div>
+
+    <!-- Trading Form -->
+    <div class="card">
+        {% if session.api_key %}
+            <h3>Place Order</h3>
+            
+            <!-- Buy Form -->
+            <form method="POST" action="{{ url_for('trade', market_id=current_market.market_id) }}" style="margin-bottom: 20px;">
+                <h4 style="color: #00ff88;">Buy {{ current_market.base_coin }}</h4>
+                <input type="hidden" name="side" value="buy">
+                
+                <div class="form-group">
+                    <label for="buy_price">Price ({{ current_market.quote_coin }})</label>
+                    <input type="number" id="buy_price" name="price" step="0.00000001" min="0" required 
+                           value="{{ orderbook.bids[0].price if orderbook.bids else '' }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="buy_amount">Amount ({{ current_market.base_coin }})</label>
+                    <input type="number" id="buy_amount" name="amount" step="0.00000001" min="0" required>
+                </div>
+                
+                <button type="submit" class="btn" style="width: 100%; background-color: #00ff88; color: #1a1a1a;">Buy {{ current_market.base_coin }}</button>
+            </form>
+            
+            <!-- Sell Form -->
+            <form method="POST" action="{{ url_for('trade', market_id=current_market.market_id) }}">
+                <h4 style="color: #ff4545;">Sell {{ current_market.base_coin }}</h4>
+                <input type="hidden" name="side" value="sell">
+                
+                <div class="form-group">
+                    <label for="sell_price">Price ({{ current_market.quote_coin }})</label>
+                    <input type="number" id="sell_price" name="price" step="0.00000001" min="0" required 
+                           value="{{ orderbook.asks[0].price if orderbook.asks else '' }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="sell_amount">Amount ({{ current_market.base_coin }})</label>
+                    <input type="number" id="sell_amount" name="amount" step="0.00000001" min="0" required>
+                </div>
+                
+                <button type="submit" class="btn" style="width: 100%; background-color: #ff4545; color: #ffffff;">Sell {{ current_market.base_coin }}</button>
+            </form>
+        {% else %}
+            <h3>Trading</h3>
+            <p>Please <a href="{{ url_for('login') }}">login</a> to place orders.</p>
+            <a href="{{ url_for('login') }}" class="btn">Login</a>
+            <a href="{{ url_for('register') }}" class="btn btn-secondary">Register</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- User Orders -->
+{% if session.api_key and user_orders %}
+    <div class="card mt-20">
+        <h3>Your Open Orders</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Side</th>
+                    <th>Price</th>
+                    <th>Amount</th>
+                    <th>Remaining</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in user_orders %}
+                    <tr>
+                        <td class="{% if order.side == 'buy' %}positive{% else %}negative{% endif %}">{{ order.side.upper() }}</td>
+                        <td class="number">{{ format_number(order.price, 8) }}</td>
+                        <td class="number">{{ format_number(order.amount, 8) }}</td>
+                        <td class="number">{{ format_number(order.remaining, 8) }}</td>
+                        <td>{{ order.status.title() }}</td>
+                        <td>
+                            {% if order.status in ['open', 'partially_filled'] %}
+                                <form method="POST" action="{{ url_for('cancel_order') }}" style="display: inline;">
+                                    <input type="hidden" name="order_id" value="{{ order.order_id }}">
+                                    <button type="submit" class="btn btn-danger btn-small">Cancel</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}
+{% endblock %}

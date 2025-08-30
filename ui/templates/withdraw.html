@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Withdraw - CryptoExchange{% endblock %}
+
+{% block content %}
+<div class="grid">
+    <div class="card" style="max-width: 600px; margin: 0 auto;">
+        <h3>Withdraw Funds</h3>
+        
+        <form method="POST">
+            <div class="form-group">
+                <label for="coin">Cryptocurrency</label>
+                <select name="coin" id="coin" required>
+                    <option value="">Select Coin to Withdraw</option>
+                    {% for coin, balance in balances.items() %}
+                        {% if balance.available != '0' %}
+                            <option value="{{ coin }}">{{ coin }} (Available: {{ format_number(balance.available, 8) }})</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="to_address">Destination Address</label>
+                <input type="text" id="to_address" name="to_address" required 
+                       placeholder="Enter the destination wallet address">
+            </div>
+            
+            <div class="form-group">
+                <label for="amount">Amount</label>
+                <input type="number" id="amount" name="amount" step="0.00000001" min="0" required
+                       placeholder="Enter amount to withdraw">
+            </div>
+            
+            <div class="form-group">
+                <div style="background-color: #ff4545; color: white; padding: 15px; border-radius: 3px;">
+                    <strong>⚠️ IMPORTANT WARNING</strong><br>
+                    • Double-check the destination address - transactions cannot be reversed<br>
+                    • Make sure you're sending to the correct blockchain network<br>
+                    • Consider network fees when calculating amounts<br>
+                    • Start with a small test transaction if unsure
+                </div>
+            </div>
+            
+            <button type="submit" class="btn" style="width: 100%;">Withdraw Funds</button>
+        </form>
+    </div>
+</div>
+
+<!-- Available Balances -->
+{% if balances %}
+    <div class="card mt-20">
+        <h3>Available Balances</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Coin</th>
+                    <th>Available</th>
+                    <th>Locked</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for coin, balance in balances.items() %}
+                    <tr>
+                        <td><strong>{{ coin }}</strong></td>
+                        <td class="number">{{ format_number(balance.available, 8) }}</td>
+                        <td class="number">{{ format_number(balance.locked, 8) }}</td>
+                        <td class="number"><strong>{{ format_number(balance.total, 8) }}</strong></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="card mt-20">
+        <h3>No Funds Available</h3>
+        <p>You don't have any funds available for withdrawal. 
+           <a href="{{ url_for('account') }}">Generate deposit addresses</a> to receive cryptocurrencies.</p>
+    </div>
+{% endif %}
+
+<!-- Withdrawal Guide -->
+<div class="card mt-20">
+    <h3>Withdrawal Guide</h3>
+    <div class="grid grid-2">
+        <div>
+            <h4>📋 Before You Withdraw</h4>
+            <ol style="margin-left: 20px;">
+                <li>Verify the destination address is correct</li>
+                <li>Ensure you're using the right network (Bitcoin, Monero, etc.)</li>
+                <li>Consider network transaction fees</li>
+                <li>Start with small amounts for testing</li>
+            </ol>
+        </div>
+        <div>
+            <h4>🔒 Security Tips</h4>
+            <ul style="margin-left: 20px;">
+                <li>Always verify addresses through multiple channels</li>
+                <li>Use secure, private connections</li>
+                <li>Keep transaction records</li>
+                <li>Be aware of network confirmation times</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Network Information -->
+<div class="card mt-20">
+    <h3>Network Information</h3>
+    {% if supported_coins %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Coin</th>
+                    <th>Network</th>
+                    <th>Confirmations</th>
+                    <th>Typical Fee</th>
+                    <th>Block Time</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for symbol, coin_info in supported_coins.items() %}
+                    <tr>
+                        <td><strong>{{ symbol }}</strong></td>
+                        <td>{{ coin_info.network_info.network }}</td>
+                        <td>{{ coin_info.network_info.confirmations }}</td>
+                        <td>{{ coin_info.network_info.typical_fee }}</td>
+                        <td>{{ coin_info.network_info.block_time }}</td>
+                        <td>
+                            <span class="status-indicator {{ 'status-online' if coin_info.status == 'online' else 'status-offline' if coin_info.status == 'connection_error' else 'status-warning' }}"></span>
+                            {{ coin_info.status.replace('_', ' ').title() }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Unable to load network information. Please check API connectivity.</p>
+    {% endif %}
+</div>
+{% endblock %}

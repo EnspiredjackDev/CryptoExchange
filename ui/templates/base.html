@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CryptoExchange{% endblock %}</title>
+    <style>
+        /* Dark mode base styles - inspired by TradeOgre */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background-color: #2a2a2a;
+            border-bottom: 1px solid #404040;
+            padding: 15px 0;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            color: #00ff88;
+            font-size: 24px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            color: #e0e0e0;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 3px;
+            transition: background-color 0.2s;
+        }
+
+        .nav-links a:hover {
+            background-color: #404040;
+        }
+
+        .nav-links a.active {
+            background-color: #00ff88;
+            color: #1a1a1a;
+        }
+
+        /* Flash messages */
+        .flash-messages {
+            margin: 20px 0;
+        }
+
+        .flash {
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 3px;
+            border: 1px solid;
+        }
+
+        .flash.success {
+            background-color: rgba(0, 255, 136, 0.1);
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+
+        .flash.error {
+            background-color: rgba(255, 69, 69, 0.1);
+            border-color: #ff4545;
+            color: #ff4545;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #b0b0b0;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            background-color: #2a2a2a;
+            border: 1px solid #404040;
+            border-radius: 3px;
+            color: #e0e0e0;
+            font-family: inherit;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #00ff88;
+        }
+
+        button,
+        .btn {
+            background-color: #00ff88;
+            color: #1a1a1a;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 3px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font-family: inherit;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        button:hover,
+        .btn:hover {
+            background-color: #00cc6a;
+        }
+
+        .btn-secondary {
+            background-color: #404040;
+            color: #e0e0e0;
+        }
+
+        .btn-secondary:hover {
+            background-color: #505050;
+        }
+
+        .btn-danger {
+            background-color: #ff4545;
+            color: #ffffff;
+        }
+
+        .btn-danger:hover {
+            background-color: #ff2020;
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: #2a2a2a;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #404040;
+        }
+
+        th {
+            background-color: #3a3a3a;
+            color: #b0b0b0;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background-color: #333333;
+        }
+
+        .number {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+
+        .positive {
+            color: #00ff88;
+        }
+
+        .negative {
+            color: #ff4545;
+        }
+
+        /* Layout */
+        .main-content {
+            padding: 20px 0;
+            min-height: calc(100vh - 120px);
+        }
+
+        .grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .grid-2 {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .grid-3 {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .card {
+            background-color: #2a2a2a;
+            border: 1px solid #404040;
+            border-radius: 5px;
+            padding: 20px;
+        }
+
+        .card h3 {
+            color: #00ff88;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .card h4 {
+            color: #b0b0b0;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        /* Orderbook styling */
+        .orderbook {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .orderbook table {
+            margin: 0;
+        }
+
+        .orderbook th,
+        .orderbook td {
+            padding: 5px 8px;
+            border: none;
+        }
+
+        .orderbook .bids {
+            background-color: rgba(0, 255, 136, 0.05);
+        }
+
+        .orderbook .asks {
+            background-color: rgba(255, 69, 69, 0.05);
+        }
+
+        .orderbook .bid-price {
+            color: #00ff88;
+        }
+
+        .orderbook .ask-price {
+            color: #ff4545;
+        }
+
+        /* Market list */
+        .market-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .market-item {
+            background-color: #2a2a2a;
+            border: 1px solid #404040;
+            border-radius: 3px;
+            padding: 15px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s;
+        }
+
+        .market-item:hover {
+            background-color: #333333;
+            border-color: #00ff88;
+        }
+
+        .market-pair {
+            font-size: 16px;
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        .market-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+
+        .market-stat {
+            text-align: center;
+        }
+
+        .market-stat .label {
+            color: #b0b0b0;
+        }
+
+        .market-stat .value {
+            color: #e0e0e0;
+            font-weight: bold;
+        }
+
+        /* Trading form */
+        .trading-form {
+            background-color: #2a2a2a;
+            border: 1px solid #404040;
+            border-radius: 5px;
+            padding: 20px;
+        }
+
+        .side-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .side-btn {
+            padding: 10px;
+            border: 2px solid;
+            border-radius: 3px;
+            background: none;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .side-btn.buy {
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+
+        .side-btn.sell {
+            border-color: #ff4545;
+            color: #ff4545;
+        }
+
+        .side-btn.active {
+            background-color: currentColor;
+            color: #1a1a1a;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #2a2a2a;
+            border-top: 1px solid #404040;
+            padding: 20px 0;
+            text-align: center;
+            color: #808080;
+            font-size: 12px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .grid-2,
+            .grid-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .nav-links {
+                justify-content: center;
+            }
+
+            .container {
+                padding: 0 10px;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th,
+            td {
+                padding: 5px;
+            }
+        }
+
+        /* Utility classes */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .mb-20 { margin-bottom: 20px; }
+        .mt-20 { margin-top: 20px; }
+        .hidden { display: none; }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #2a2a2a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #404040;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #505050;
+        }
+    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/extras.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="{{ url_for('index') }}" class="logo">CryptoExchange</a>
+                <nav class="nav-links">
+                    <a href="{{ url_for('index') }}">Markets</a>
+                    <a href="{{ url_for('coins_info') }}">Coins</a>
+                    {% if session.api_key %}
+                        <a href="{{ url_for('account') }}">Account</a>
+                        <a href="{{ url_for('withdraw') }}">Withdraw</a>
+                        <a href="{{ url_for('logout') }}">Logout</a>
+                    {% else %}
+                        <a href="{{ url_for('login') }}">Login</a>
+                        <a href="{{ url_for('register') }}">Register</a>
+                    {% endif %}
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="flash {{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 CryptoExchange - Secure, Anonymous Trading</p>
+        </div>
+    </footer>
+
+    {% block extra_body %}{% endblock %}
+</body>
+</html>

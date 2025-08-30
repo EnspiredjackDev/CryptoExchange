@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Setup Guide{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>🔧 Admin Setup Guide</h1>
+    
+    <div class="card" style="margin-bottom: 30px;">
+        <h2>👋 Welcome to the Exchange Admin Panel</h2>
+        <p>This guide will help you set up and use the admin panel for your cryptocurrency exchange.</p>
+    </div>
+
+    <div class="card" style="margin-bottom: 30px;">
+        <h2>🔐 Two-Layer Authentication</h2>
+        <p>The admin panel uses a two-layer security system:</p>
+        <ol>
+            <li><strong>Admin Access Key:</strong> Required to access the admin interface</li>
+            <li><strong>API Key:</strong> Required to perform admin operations on the backend</li>
+        </ol>
+    </div>
+
+    <div class="card" style="margin-bottom: 30px;">
+        <h2>⚙️ Setup Steps</h2>
+        
+        <h3>Step 1: Set Admin Access Key</h3>
+        <p>In your main exchange directory, edit the <code>security_config.py</code> file:</p>
+        <pre style="background: #000; padding: 15px; border-radius: 5px; overflow-x: auto;">
+ADMIN_ACCESS_KEY = "your-secret-admin-key-here"</pre>
+        <p>This key controls who can access the admin interface at all.</p>
+
+        <h3>Step 2: Get Your API Key</h3>
+        <p>You need an API key from the main exchange to perform admin operations:</p>
+        <ol>
+            <li>Create a user account on the main exchange</li>
+            <li>Generate an API key from your account settings</li>
+            <li>Make sure this API key has admin privileges</li>
+        </ol>
+
+        <h3>Step 3: Access Admin Panel</h3>
+        <ol>
+            <li>Go to <code>/admin</code> (this page is hidden from navigation)</li>
+            <li>Enter your Admin Access Key</li>
+            <li>Enter your API Key for backend operations</li>
+            <li>You're now ready to manage the exchange!</li>
+        </ol>
+    </div>
+
+    <div class="card" style="margin-bottom: 30px;">
+        <h2>🛠️ Admin Functions</h2>
+        <ul>
+            <li><strong>Market Creation:</strong> Add new trading pairs to the exchange</li>
+            <li><strong>Fee Management:</strong> Withdraw accumulated trading fees</li>
+            <li><strong>System Monitoring:</strong> View exchange status and health</li>
+        </ul>
+    </div>
+
+    <div class="card" style="margin-bottom: 30px;">
+        <h2>🚨 Security Notes</h2>
+        <ul>
+            <li>Never share your admin access key or API key</li>
+            <li>Use strong, unique keys for production</li>
+            <li>Consider changing keys regularly</li>
+            <li>The admin panel is intentionally hidden from navigation</li>
+            <li>Always log out when finished with admin tasks</li>
+        </ul>
+    </div>
+
+    <div class="card" style="margin-bottom: 30px;">
+        <h2>🔗 Quick Links</h2>
+        <p>
+            <a href="/admin" class="btn btn-primary">Go to Admin Login</a>
+            <a href="/" class="btn btn-secondary">Back to Exchange</a>
+        </p>
+    </div>
+
+    <div class="card">
+        <h2>❓ Troubleshooting</h2>
+        <p><strong>401 Authentication Error:</strong> Make sure you have a valid API key entered</p>
+        <p><strong>Access Denied:</strong> Check that your admin access key is correct</p>
+        <p><strong>Backend Connection Error:</strong> Ensure the main exchange API is running on port 5000</p>
+    </div>
+</div>
+{% endblock %}

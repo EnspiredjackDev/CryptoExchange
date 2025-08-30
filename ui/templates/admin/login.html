@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Login - CryptoExchange{% endblock %}
+
+{% block content %}
+<div class="grid">
+    <div class="card" style="max-width: 400px; margin: 0 auto;">
+        <h3>🔒 Admin Access</h3>
+        <p>Enter the admin access key to manage the exchange.</p>
+        
+        <form method="POST" action="{{ url_for('admin_auth') }}">
+            <div class="form-group">
+                <label for="access_key">Access Key</label>
+                <input type="password" id="access_key" name="access_key" required 
+                       placeholder="Enter admin access key">
+            </div>
+            
+            <button type="submit" class="btn" style="width: 100%;">Access Admin Panel</button>
+        </form>
+        
+        <div class="text-center mt-20">
+            <a href="/admin/help" class="btn btn-secondary" style="margin-right: 10px;">📖 Setup Guide</a>
+            <a href="{{ url_for('index') }}">← Back to Exchange</a>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-20">
+    <h3>⚠️ Restricted Area</h3>
+    <p>This is a restricted administrative area. Access is logged and monitored. 
+       Only authorized personnel should attempt to access this area.</p>
+</div>
+{% endblock %}

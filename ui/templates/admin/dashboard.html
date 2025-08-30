@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - CryptoExchange{% endblock %}
+
+{% block content %}
+<!-- Admin Header -->
+<div class="card mb-20" style="background-color: #2a2a2a; border-color: #ff4545;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="color: #ff4545;">🔧 Admin Dashboard</h3>
+        <div>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">View Exchange</a>
+            <a href="{{ url_for('admin_logout') }}" class="btn btn-danger">Logout</a>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-2">
+    <!-- Market Management -->
+    <div class="card">
+        <h3>Market Management</h3>
+        
+        <!-- Create New Market -->
+        {% if session.api_key %}
+            <form method="POST" action="{{ url_for('admin_create_market') }}" class="mb-20">
+                <h4>Create New Market</h4>
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label for="base_coin">Base Coin</label>
+                        <input type="text" id="base_coin" name="base_coin" required 
+                               placeholder="e.g., BTC" style="text-transform: uppercase;">
+                    </div>
+                    <div class="form-group">
+                        <label for="quote_coin">Quote Coin</label>
+                        <input type="text" id="quote_coin" name="quote_coin" required 
+                               placeholder="e.g., XMR" style="text-transform: uppercase;">
+                    </div>
+                </div>
+                <button type="submit" class="btn">Create Market</button>
+            </form>
+        {% else %}
+            <div class="info-box warning mb-20">
+                <strong>⚠️ API Key Required</strong><br>
+                Market creation requires API authentication. Please <a href="{{ url_for('login') }}">login with your admin API key</a> first.
+            </div>
+        {% endif %}
+
+        <!-- Existing Markets -->
+        <h4>Active Markets</h4>
+        {% if markets %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Market</th>
+                        <th>Last Price</th>
+                        <th>24h Volume</th>
+                        <th>24h Trades</th>
+                        <th>Fee Rate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for market in markets %}
+                        <tr>
+                            <td>{{ market.market_id }}</td>
+                            <td><strong>{{ market.base_coin }}/{{ market.quote_coin }}</strong></td>
+                            <td class="number">{{ format_number(market.last_price, 8) if market.last_price else 'N/A' }}</td>
+                            <td class="number">{{ format_number(market.volume_24h, 4) }}</td>
+                            <td class="number">{{ market.trade_count_24h or 0 }}</td>
+                            <td class="number">{{ format_number(market.fee_rate, 4) }}%</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No markets found.</p>
+        {% endif %}
+    </div>
+
+    <!-- Fee Management -->
+    <div class="card">
+        <h3>Fee Management</h3>
+        
+        {% if not session.api_key %}
+            <div class="info-box warning">
+                <strong>⚠️ API Key Required</strong><br>
+                Fee management requires API authentication. Please <a href="{{ url_for('login') }}">login with your admin API key</a> first.
+            </div>
+        {% elif fee_error %}
+            <div class="info-box error">
+                <strong>❌ Fee Access Error</strong><br>
+                {{ fee_error }}
+            </div>
+        {% endif %}
+        
+        <!-- Current Fee Balances -->
+        <h4>Fee Balances</h4>
+        {% if fees and not fee_error %}
+            <table class="mb-20">
+                <thead>
+                    <tr>
+                        <th>Coin</th>
+                        <th>Amount</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for coin, amount in fees.items() %}
+                        <tr>
+                            <td><strong>{{ coin }}</strong></td>
+                            <td class="number">{{ format_number(amount, 8) }}</td>
+                            <td>
+                                {% if amount != '0' and session.api_key %}
+                                    <form method="POST" action="{{ url_for('admin_withdraw_fees') }}" style="display: inline;">
+                                        <input type="hidden" name="coin" value="{{ coin }}">
+                                        <input type="number" name="amount" step="0.00000001" min="0" max="{{ amount }}" 
+                                               style="width: 100px; margin-right: 5px;" placeholder="Amount">
+                                        <button type="submit" class="btn btn-small">Withdraw</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>{{ "No fee data available." if not fee_error else "Fee data unavailable due to authentication error." }}</p>
+        {% endif %}
+
+        <!-- Fee Withdrawal Form -->
+        {% if session.api_key and not fee_error %}
+            <h4>Withdraw Fees</h4>
+            <form method="POST" action="{{ url_for('admin_withdraw_fees') }}">
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label for="fee_coin">Coin</label>
+                        <select name="coin" id="fee_coin" required>
+                            <option value="">Select Coin</option>
+                            {% for coin, amount in fees.items() %}
+                                {% if amount != '0' %}
+                                    <option value="{{ coin }}">{{ coin }} ({{ format_number(amount, 8) }} available)</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="fee_amount">Amount</label>
+                        <input type="number" id="fee_amount" name="amount" step="0.00000001" min="0" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn">Withdraw Fees</button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+<!-- System Information -->
+<div class="card mt-20">
+    <h3>System Information</h3>
+    <div class="grid grid-3">
+        <div>
+            <h4>📊 Exchange Stats</h4>
+            <p><strong>Total Markets:</strong> {{ markets|length }}</p>
+            <p><strong>Active Markets:</strong> {{ markets|length }}</p>
+            <p><strong>API Version:</strong> 1.0.0</p>
+        </div>
+        <div>
+            <h4>💰 Fee Summary</h4>
+            <p><strong>Fee Currencies:</strong> {{ fees.keys()|length if fees else 0 }}</p>
+            <p><strong>Total Fee Coins:</strong> {{ fees.values()|list|length if fees else 0 }}</p>
+        </div>
+        <div>
+            <h4>🔒 Security</h4>
+            <p><strong>Admin Session:</strong> Active</p>
+            <p><strong>Access Level:</strong> Full</p>
+            <p><strong>Connection:</strong> Secure</p>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Actions -->
+<div class="card mt-20">
+    <h3>Admin Actions</h3>
+    <div class="grid grid-2">
+        <div>
+            <h4>⚠️ Important Notices</h4>
+            <ul style="margin-left: 20px;">
+                <li>All admin actions are logged for security</li>
+                <li>Market creation is irreversible</li>
+                <li>Fee withdrawals are immediately processed</li>
+                <li>Changes take effect immediately</li>
+            </ul>
+        </div>
+        <div>
+            <h4>🛠️ Quick Actions</h4>
+            <p><strong>API Key Required:</strong> Some actions require your admin API key to be set in the session.</p>
+            <p><strong>Backup:</strong> Ensure regular database backups before major changes.</p>
+            <p><strong>Monitoring:</strong> Monitor logs for any unusual activity.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Authentication Notice -->
+{% if not session.api_key %}
+    <div class="card mt-20" style="border-color: #ff4545;">
+        <h3 style="color: #ff4545;">🔑 API Authentication Required</h3>
+        <p>To access full admin functionality, you need to authenticate with your admin API key:</p>
+        <ol style="margin-left: 20px;">
+            <li><a href="{{ url_for('login') }}">Login with your admin API key</a> in the main interface</li>
+            <li>Return to this admin panel</li>
+            <li>All admin functions will then be available</li>
+        </ol>
+        <div class="mt-20">
+            <a href="{{ url_for('login') }}" class="btn">Login with API Key</a>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Main Interface</a>
+        </div>
+    </div>
+{% else %}
+    <div class="card mt-20" style="border-color: #00ff88;">
+        <h3 style="color: #00ff88;">✅ Full Admin Access</h3>
+        <p>You are authenticated and have access to all admin functions.</p>
+        <div class="grid grid-2">
+            <div>
+                <h4>🔧 Available Functions</h4>
+                <ul style="margin-left: 20px;">
+                    <li>Create new trading markets</li>
+                    <li>Withdraw accumulated fees</li>
+                    <li>Monitor system statistics</li>
+                    <li>View market performance</li>
+                </ul>
+            </div>
+            <div>
+                <h4>🔒 Security Status</h4>
+                <p><strong>Admin Session:</strong> Active</p>
+                <p><strong>API Authentication:</strong> Valid</p>
+                <p><strong>Access Level:</strong> Full Administrative</p>
+                <p><strong>Connection:</strong> Secure</p>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

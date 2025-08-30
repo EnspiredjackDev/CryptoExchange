@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Login - CryptoExchange{% endblock %}
+
+{% block content %}
+<div class="grid">
+    <div class="card" style="max-width: 400px; margin: 0 auto;">
+        <h3>Login</h3>
+        <p>Enter your API key to access your account.</p>
+        
+        <form method="POST">
+            <div class="form-group">
+                <label for="api_key">API Key</label>
+                <input type="password" id="api_key" name="api_key" required placeholder="Enter your API key">
+            </div>
+            
+            <button type="submit" class="btn" style="width: 100%;">Login</button>
+        </form>
+        
+        <div class="text-center mt-20">
+            <p>Don't have an account? <a href="{{ url_for('register') }}">Create one here</a></p>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-20">
+    <h3>Security Notice</h3>
+    <div class="grid grid-2">
+        <div>
+            <h4>🔐 Your API Key</h4>
+            <p>Your API key is your password and wallet access combined. Keep it secure and never share it with anyone.</p>
+        </div>
+        <div>
+            <h4>🌐 Privacy</h4>
+            <p>This interface works without JavaScript and is compatible with Tor Browser's safest settings.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

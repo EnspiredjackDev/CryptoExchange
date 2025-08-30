@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Account - CryptoExchange{% endblock %}
+
+{% block content %}
+<!-- Account Overview -->
+<div class="card mb-20">
+    <h3>Account Overview</h3>
+    <div class="grid grid-3">
+        <div>
+            <h4>Total Balance (USD est.)</h4>
+            <div class="value" style="font-size: 24px; color: #00ff88;">
+                <!-- This would require price data to calculate -->
+                <span style="font-size: 14px; color: #b0b0b0;">Calculation requires market data</span>
+            </div>
+        </div>
+        <div>
+            <h4>Open Orders</h4>
+            <div class="value" style="font-size: 24px; color: #00ff88;">{{ orders|length }}</div>
+        </div>
+        <div>
+            <h4>Recent Trades</h4>
+            <div class="value" style="font-size: 24px; color: #00ff88;">{{ trades|length }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-2">
+    <!-- Balances -->
+    <div class="card">
+        <h3>Balances</h3>
+        {% if balances %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Coin</th>
+                        <th>Available</th>
+                        <th>Locked</th>
+                        <th>Total</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for coin, balance in balances.items() %}
+                        <tr>
+                            <td><strong>{{ coin }}</strong></td>
+                            <td class="number">{{ format_number(balance.available, 8) }}</td>
+                            <td class="number">{{ format_number(balance.locked, 8) }}</td>
+                            <td class="number"><strong>{{ format_number(balance.total, 8) }}</strong></td>
+                            <td>
+                                {% if balance.total != '0' %}
+                                    <a href="{{ url_for('withdraw') }}" class="btn btn-small">Withdraw</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No balances found. Generate deposit addresses to receive funds.</p>
+        {% endif %}
+    </div>
+
+    <!-- Deposit Addresses -->
+    <div class="card">
+        <h3>Deposit Addresses</h3>
+        
+        <!-- Generate New Address -->
+        <form method="POST" action="{{ url_for('generate_address') }}" class="mb-20">
+            <div class="form-group">
+                <label for="coin">Generate Address For:</label>
+                <select name="coin" id="coin" required>
+                    <option value="">Select Coin</option>
+                    {% for symbol, coin_info in supported_coins.items() %}
+                        <option value="{{ symbol }}">{{ coin_info.name }} ({{ symbol }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-small">Generate Address</button>
+        </form>
+
+        <!-- Existing Addresses -->
+        {% if addresses %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Coin</th>
+                        <th>Address</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for address in addresses %}
+                        <tr>
+                            <td><strong>{{ address.coin }}</strong></td>
+                            <td style="font-family: monospace; font-size: 12px; word-break: break-all;">
+                                {{ address.address }}
+                            </td>
+                            <td>{{ address.created_at[:10] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No deposit addresses generated yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Open Orders -->
+{% if orders %}
+    <div class="card mt-20">
+        <h3>Open Orders</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Market</th>
+                    <th>Side</th>
+                    <th>Price</th>
+                    <th>Amount</th>
+                    <th>Remaining</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                    <tr>
+                        <td>{{ order.market }}</td>
+                        <td class="{% if order.side == 'buy' %}positive{% else %}negative{% endif %}">{{ order.side.upper() }}</td>
+                        <td class="number">{{ format_number(order.price, 8) }}</td>
+                        <td class="number">{{ format_number(order.amount, 8) }}</td>
+                        <td class="number">{{ format_number(order.remaining, 8) }}</td>
+                        <td>{{ order.status.title() }}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('cancel_order') }}" style="display: inline;">
+                                <input type="hidden" name="order_id" value="{{ order.order_id }}">
+                                <button type="submit" class="btn btn-danger btn-small">Cancel</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}
+
+<!-- Recent Trades -->
+{% if trades %}
+    <div class="card mt-20">
+        <h3>Recent Trades</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Market</th>
+                    <th>Side</th>
+                    <th>Price</th>
+                    <th>Amount</th>
+                    <th>Total</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trade in trades %}
+                    <tr>
+                        <td>{{ trade.market }}</td>
+                        <td class="{% if trade.side == 'buy' %}positive{% else %}negative{% endif %}">{{ trade.side.upper() }}</td>
+                        <td class="number">{{ format_number(trade.price, 8) }}</td>
+                        <td class="number">{{ format_number(trade.amount, 8) }}</td>
+                        <td class="number">{{ calculate_total(trade.price, trade.amount, 8) }}</td>
+                        <td>{{ trade.timestamp[:16] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}
+
+<!-- Security Section -->
+<div class="card mt-20">
+    <h3>Security</h3>
+    <div class="grid grid-2">
+        <div>
+            <h4>🔐 API Key Protection</h4>
+            <p>Your API key is your only way to access this account. Keep it secure and never share it with anyone.</p>
+        </div>
+        <div>
+            <h4>🌐 Network Security</h4>
+            <p>Always use secure connections (HTTPS/Tor) when accessing your account. This interface is compatible with Tor Browser's safest settings.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

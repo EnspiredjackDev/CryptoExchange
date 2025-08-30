@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Markets - CryptoExchange{% endblock %}
+
+{% block content %}
+<div class="grid grid-2">
+    <!-- Markets List -->
+    <div class="card">
+        <h3>Active Markets</h3>
+        {% if markets %}
+            <div class="market-list">
+                {% for market in markets %}
+                    <a href="{{ url_for('market_view', market_id=market.market_id) }}" class="market-item">
+                        <div class="market-pair">{{ market.base_coin }}/{{ market.quote_coin }}</div>
+                        <div class="market-stats">
+                            <div class="market-stat">
+                                <div class="label">Last Price</div>
+                                <div class="value">{{ format_number(market.last_price, 8) if market.last_price else 'N/A' }}</div>
+                            </div>
+                            <div class="market-stat">
+                                <div class="label">24h Volume</div>
+                                <div class="value">{{ format_number(market.volume_24h, 4) }}</div>
+                            </div>
+                            <div class="market-stat">
+                                <div class="label">24h Change</div>
+                                <div class="value {% if market.change_24h %}{{ 'positive' if market.change_24h > 0 else 'negative' }}{% endif %}">
+                                    {% if market.change_24h is not none %}
+                                        {{ '+' if market.change_24h > 0 else '' }}{{ market.change_24h }}%
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No active markets available.</p>
+        {% endif %}
+    </div>
+
+    <!-- Order Book Preview -->
+    <div class="card">
+        <h3>Order Book{% if orderbook.market %} - {{ orderbook.market }}{% endif %}</h3>
+        {% if orderbook.asks or orderbook.bids %}
+            <div class="orderbook">
+                <!-- Asks (Sell Orders) -->
+                {% if orderbook.asks %}
+                    <h4>Asks (Sell Orders)</h4>
+                    <table class="asks">
+                        <thead>
+                            <tr>
+                                <th>Price{% if markets %} ({{ markets[0].quote_coin }}){% endif %}</th>
+                                <th>Amount{% if markets %} ({{ markets[0].base_coin }}){% endif %}</th>
+                                <th>Total{% if markets %} ({{ markets[0].quote_coin }}){% endif %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ask in orderbook.asks[:10] %}
+                                <tr>
+                                    <td class="number ask-price">{{ format_number(ask.price, 8) }}</td>
+                                    <td class="number">{{ format_number(ask.amount, 8) }}</td>
+                                    <td class="number">{{ calculate_total(ask.price, ask.amount, 8) }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+
+                <!-- Bids (Buy Orders) -->
+                {% if orderbook.bids %}
+                    <h4>Bids (Buy Orders)</h4>
+                    <table class="bids">
+                        <thead>
+                            <tr>
+                                <th>Price{% if markets %} ({{ markets[0].quote_coin }}){% endif %}</th>
+                                <th>Amount{% if markets %} ({{ markets[0].base_coin }}){% endif %}</th>
+                                <th>Total{% if markets %} ({{ markets[0].quote_coin }}){% endif %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bid in orderbook.bids[:10] %}
+                                <tr>
+                                    <td class="number bid-price">{{ format_number(bid.price, 8) }}</td>
+                                    <td class="number">{{ format_number(bid.amount, 8) }}</td>
+                                    <td class="number">{{ calculate_total(bid.price, bid.amount, 8) }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+            </div>
+        {% else %}
+            <p>No order book data available.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Getting Started Section -->
+{% if not session.api_key %}
+    <div class="card mt-20">
+        <h3>Getting Started</h3>
+        <p>Welcome to CryptoExchange - a secure, anonymous cryptocurrency trading platform.</p>
+        <br>
+        <div class="grid grid-2">
+            <div>
+                <h4>New Users</h4>
+                <p>Create an account to start trading cryptocurrencies securely.</p>
+                <a href="{{ url_for('register') }}" class="btn mt-20">Create Account</a>
+            </div>
+            <div>
+                <h4>Existing Users</h4>
+                <p>Log in with your API key to access your account and start trading.</p>
+                <a href="{{ url_for('login') }}" class="btn btn-secondary mt-20">Login</a>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Features Section -->
+<div class="card mt-20">
+    <h3>Platform Features</h3>
+    <div class="grid grid-3">
+        <div>
+            <h4>🔒 Security First</h4>
+            <p>Advanced security measures including API key authentication, rate limiting, and transaction integrity validation.</p>
+        </div>
+        <div>
+            <h4>🚫 No JavaScript</h4>
+            <p>Pure HTML/CSS interface compatible with Tor Browser's safest settings for maximum privacy.</p>
+        </div>
+        <div>
+            <h4>⚡ Real-time Trading</h4>
+            <p>Instant order matching and execution with support for multiple cryptocurrency pairs.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

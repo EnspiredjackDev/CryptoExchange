@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Register - CryptoExchange{% endblock %}
+
+{% block content %}
+<div class="grid">
+    <div class="card" style="max-width: 400px; margin: 0 auto;">
+        <h3>Create Account</h3>
+        <p>Create a new trading account. You'll receive an API key that serves as your login credentials.</p>
+        
+        <form method="POST">
+            <div class="form-group">
+                <p><strong>⚠️ Important:</strong> Your API key will be displayed only once. Make sure to save it securely.</p>
+            </div>
+            
+            <button type="submit" class="btn" style="width: 100%;">Create Account</button>
+        </form>
+        
+        <div class="text-center mt-20">
+            <p>Already have an account? <a href="{{ url_for('login') }}">Login here</a></p>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-20">
+    <h3>Account Security</h3>
+    <div class="grid grid-3">
+        <div>
+            <h4>🔑 API Key</h4>
+            <p>Your API key is generated using cryptographically secure random methods and serves as both your username and password.</p>
+        </div>
+        <div>
+            <h4>💰 Wallet Access</h4>
+            <p>Your API key provides full access to your trading account and funds. Treat it like cash.</p>
+        </div>
+        <div>
+            <h4>🛡️ No Recovery</h4>
+            <p>There is no way to recover a lost API key. Keep multiple secure backups in different locations.</p>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-20">
+    <h3>Getting Started</h3>
+    <ol style="margin-left: 20px;">
+        <li>Click "Create Account" to generate your API key</li>
+        <li>Save your API key immediately in a secure location</li>
+        <li>Login using your API key</li>
+        <li>Generate deposit addresses for cryptocurrencies you want to trade</li>
+        <li>Send funds to your deposit addresses</li>
+        <li>Start trading on the markets</li>
+    </ol>
+</div>
+{% endblock %}
