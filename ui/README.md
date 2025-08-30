@@ -146,12 +146,6 @@ python3 ui_app.py
 
 ## Troubleshooting
 
-**UI won't start**: Check if exchange API is running and accessible
-**Login fails**: Verify API key and exchange API connectivity
-**Admin access denied**: Check ADMIN_ACCESS_KEY environment variable
-**Styling issues**: Ensure templates are loading correctly
-**Tor compatibility**: Test with JavaScript disabled
-
 ## Security Disclosure
 
 Report security issues to the exchange administrator. Do not disclose publicly until patched.
