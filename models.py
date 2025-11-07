@@ -150,3 +150,32 @@ class SyncState(Base):
 
     coin_symbol = Column(String, primary_key=True)
     last_block_hash = Column(String)
+
+
+class CoinNode(Base):
+    __tablename__ = 'coin_nodes'
+    __table_args__ = {'schema': 'exchange'}
+
+    id = Column(Integer, primary_key=True)
+    coin_symbol = Column(String(10), unique=True, nullable=False)
+    coin_name = Column(String(50), nullable=False)
+    
+    # Node connection settings
+    node_host = Column(String(255), nullable=False)
+    node_port = Column(Integer, nullable=False)
+    node_user = Column(String(255), nullable=False)
+    node_pass = Column(Text, nullable=False)  # TODO: should be encrypted?
+    node_type = Column(String(20), nullable=False, default='btc')  # 'btc' or 'monero'
+    
+    # Network metadata
+    network_name = Column(String(50), nullable=True)
+    block_time = Column(String(50), nullable=True)
+    confirmations = Column(Integer, default=6)
+    address_format = Column(String(255), nullable=True)
+    default_fee = Column(String(20), nullable=True)
+    
+    # Status and management
+    enabled = Column(Boolean, default=True)
+    created_at = Column(TIMESTAMP(timezone=True), default=utc_now)
+    updated_at = Column(TIMESTAMP(timezone=True), default=utc_now, onupdate=utc_now)
+
